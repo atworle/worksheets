@@ -363,17 +363,18 @@ That gives us the first 6 rows of data. Its really useful if you just want to pe
 
 (@) The default is to print six rows of data. Can you modify the above code to print out the first 10 rows? 
 ```{r}
-
+head(gayguides,10)
 ```
 
 (@) Can you find the last 6 rows of data? 
 ```{r}
-
+tail(gayguides)
 ```
 
 (@) Reflect on the previous two prompts. How did you figure these out? 
 
->
+>For finding the code for 10 rows, in all honesty I just kept putting 10 in different places till it worked out. I figured it had to be in the parantheses but otherwise
+wasn't sure. The tail code was easy because that is also a command prompt command. 
 
 The `str()` function is another very useful function for understanding a dataset. It compactly displays the internal structure of an R object. 
 ```{r}
@@ -392,28 +393,50 @@ gayguides$title[500]
 
 (@) Break this down. Whats going on here? What do each of the elements of this code mean? (gayguides, $, title, and [500]) 
 
->
+>Gayguides is where it's pulling the number from, where the command is going. Title is specifying what in the gayguides, in this case 'title'. The $ is what's actually
+causing the operation to happen, it's the operator. 500 is telling the operator where to go, though the 500 is the same color (in my vscode) as head() or tail() so I'm guessing it's
+like a function but more specific. 
 
 (@) The Year variable contains the year (numeric) of each entry. Can you find the earliest year in this dataset? (Using code, don't cheat and use the documentation!)
 ```{r}
+min(gayguides$Year, na.rm = TRUE)
+#1965
+#Originally I used gayguides$Year and searched through and found 1965 but wasn't sure if that was the earliest because there was too much data so I ended up finding
+#a line of code to run, head and tail wasn't useful here because the data is default organized by title.
+#na.rm = TRUE simply excludes N/A or empty sections
 
 ```
 
 
 (@) How about the latest year? 
 ```{r}
-
+max(gayguides$Year, na.rm = TRUE)
+#1985
 ```
 
 
 (@) Add another dataset from `DigitalMethodsData`. How many observations are included in this dataset? Run through some of the examples from above to learn about the dataset.
 ```{r}
+#data(BostonWomenVoters)
+str(BostonWomenVoters)
+#10702 observations 34 variables
+head(BostonWomenVoters)
+tail(BostonWomenVoters)
+BostonWomenVoters$Age
+BostonWomenVoters$Occupation
 
 ```
 
 (@) What did you learn about the dataset? What can you tell me about it? 
 
->
+>Like I pointed out in the previous answer, there are 10702 entries that have up to 34 different attributes (age, address, etc). By running tail I found out
+that some entries don't have some information. By using the $ operator I can find out some interesting things like there are around 3000 women voters under the age of 30
+and other age based data. For example, no one under the age of 20.
+ The notes variable shows some interesting things, a large portion of the notes have born in, lots were born in South end or the city proper. There are geographic
+ of birth sections so it seems the note section was used to denote where exactly in Boston the person was born, not sure the reason. Of course there are other things
+ in the note section but a large portion are born in. For some reason there is husband and father information so I'm guessing the date is 1920 and not 2020.
+The occupation section supports this, most say at home, housewife, or housekeeper. 
+
 
 
 
