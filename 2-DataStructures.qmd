@@ -160,22 +160,31 @@ gayguides[1:3,]
 
 (@) Why is this different? What do we get compared to the previous example? 
 
->With gayguides[2:3] it is printing columns 2 and 3, with every single row. With gayguides[1:3,] it's printing 
+>With gayguides[2:3] it is printing columns 2 and 3, with every single row. With gayguides[1:3,] it's printing rows 1-3 because of the ','.
 
 (@) Can you find just the city and state for the first 5 entries? 
 ```{r}
-
+gayguides[1:5, 8:9]
+print(gayguides$city[1:5])
+print(gayguides$Year[1:5])
+#I used the print code first because it I couldn't keep it to 5 rows then I realized that putting the comma in brackets changes what is row and what is column
 ```
 
 (@) How about the street address and type for rows 2,555 to 2,560?
 
 ```{r}
-
+gayguides[2555:2560,5:6]
+print(gayguides$streetaddress[2555:2560])
+print(gayguides$type[2555:2560])
 ```
 
 (@) Load another dataset from `DigitalMethodsData`. Subset it to find some element of the data. Write the code below and then explain what element of the data you wanted to subset and why:
 ```{r}
-
+data(BostonWomenVoters)
+x<-BostonWomenVoters[1:50,11]
+y<-BostonWomenVoters[1:50,16]
+print(paste(x,y))
+#I used the age and occupation columns because I thought it would be interesting to see them side by side. Using a wider range of ages would probably make it more interesting but the young 20 and 21 year old women have very similar occupations.
 ```
 
 > 
@@ -195,7 +204,7 @@ gayguides$city[100:110]
 
 (@) What does this code do? 
 
->
+>This code prints rows 100 to 110 of the city column.
 
 
 We can also use `$` to create a new column in `gayguides`. 
@@ -258,17 +267,38 @@ if (x > 90) {
 
 (@) You are teaching History 100 for Clemson. Write an `if` statement that calculates whether the enrollment cap of 30 on your class has been met. 
 ```{r}
-
+enrol<- 29
+enrolcap <-30
+if (enrol<enrolcap){
+  "enrolcap not met"
+} else if(enrol>=30){
+  "enrolcap met"
+}
 ```
 
 (@) Create a list of presidents and store it in a variable. Use an `if` statement to check if the number of presidents in the list is more than 5. If its not, indicate that too. 
 ```{r}
-
+x<- c("Jefferson", "Madison", "Adams")
+if (length(x)>5) {
+  "There are more than 5 presidents in this list"
+} else {
+  "Sadly there are not more than 5 presidents in this list"
+}
 ```
 
 (@) You can also use an if statement to check a variable in a dataframe. How might you use an if statement to check if the GayGuides dataset contains any year after 1990? (Hint: first try to figure out how to determine the latest year in the dataframe and then build an if statement that checks that and prints something out if its true or false. You should think about what kind of value in contained in the Year column, how to access it, and how to check for the latest value.) 
 
 ```{r}
+data(gayguides)
+for(y in 1:length(gayguides$Year)) {
+   if (gayguides$Year[y]>1980) {
+    print(gayguides$Year[y])
+}   else {
+  print("false")
+  
+}
+}
+
 ```
 
 (@) Reflect on the question above. How did you figure this out? What was the process you went through to build this chunk of code?
