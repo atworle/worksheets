@@ -290,14 +290,12 @@ if (length(x)>5) {
 
 ```{r}
 data(gayguides)
-for(y in 1:length(gayguides$Year)) {
-   if (gayguides$Year[y]>1980) {
-    print(gayguides$Year[y])
+if (gayguides$Year[y]>1984) {
+    print("true")
 }   else {
-  print("false")
-  
+  print("False")
 }
-}
+
 
 ```
 
