@@ -1,6 +1,6 @@
 ---
 title: "Worksheet 2: Data Structures"
-author: ""
+author: "Antonio Worley"
 date: ""
 ---
 
@@ -301,7 +301,7 @@ if (x>1990) {
 
 (@) Reflect on the question above. How did you figure this out? What was the process you went through to build this chunk of code?
 
-> 
+> I actually had trouble because I was trying to use a for statement here. I realized that if I used a for statement, it would run through every year based on the conditions I set. I realized that the answer was simple, I could just set a variable to the max gayguides year and check if it was later than 1990. Then do a simple if else statement to print true or false. 
 
 #### Loops
 
@@ -373,11 +373,19 @@ for (i in 1:10) {
 ```
 
 (@) What happened here? Why did the loop only print 3 and 4? 
-
+Because if i was less than 3 it skipped them with 'next' and if it was greater than or equal to 5 it stopped.
 
 (@) In the state population data, can you write a loop that pulls only states with populations between 200,000 and 250,000 in 1800? You could accomplish this a few different ways. Try to use next and break statements. 
 ```{r}
-
+data(statepopulations)
+y<-na.exclude(statepopulations$X1800)
+for(i in y){
+if (i<200000)
+next
+if(i<250000)
+break
+print(i)
+}
 ```
 
 (@) What if we wanted to loop through the gay guides data? Can you write a loop that iterates through the cities in the Gay Guides data and returns the title of any location in Greenville? 
@@ -428,7 +436,7 @@ historyStudents <- function(studentname, class) {
 ```
 (@) Can you run this function? 
 ```{r}
-
+historyStudents("me","History8500")
 ```
 
 
@@ -441,12 +449,16 @@ There are several components to a function.
 
 (@) Write a function that takes a string of text and counts the number of characters. The function should return "There are xx characters in that string." 
 ```{r}
+count.char<-function(numby){
+  paste("There are",nchar(numby),"characters in this string.")
 
+ } 
+count.char("abcdefg and some more")
 ```
 
 (@) Reflect on the process of building the above function. How did you go about figuring this out? 
 
->
+>I tried to mirror the example but there was an obvious problem, the example wasn't actually calculating anything so it didn't work. I tried to just run nchar() alone then run paste() next but that didn't work. Then I tried putting count.char and numby in the xx position of the phrase. I then realized that I wanted the xx to be variable and change so I realized I had to put nchar() there.
 
 The body of a functions can use any of the techniques we've learned in this worksheet like loops and if statements. For example: 
 ```{r}
