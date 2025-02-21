@@ -378,14 +378,15 @@ Because if i was less than 3 it skipped them with 'next' and if it was greater t
 (@) In the state population data, can you write a loop that pulls only states with populations between 200,000 and 250,000 in 1800? You could accomplish this a few different ways. Try to use next and break statements. 
 ```{r}
 data(statepopulations)
-y<-na.exclude(statepopulations$X1800)
-for(i in y){
-if (i<200000)
-next
-if(i<250000)
-break
-print(i)
+y<-na.omit(statepopulations$X1800)
+for(i in y) {
+    if(i<200000)
+    next
+    if(i>250000)
+    next
+    print(i)
 }
+
 ```
 
 (@) What if we wanted to loop through the gay guides data? Can you write a loop that iterates through the cities in the Gay Guides data and returns the title of any location in Greenville? 
