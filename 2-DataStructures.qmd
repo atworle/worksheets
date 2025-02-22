@@ -391,6 +391,11 @@ for(i in y) {
 
 (@) What if we wanted to loop through the gay guides data? Can you write a loop that iterates through the cities in the Gay Guides data and returns the title of any location in Greenville? 
 ```{r}
+data(gayguides)
+y<-which(gayguides$city=="Greenville")
+for(i in y){
+  print(gayguides$title[i])
+}
 
 ```
 
@@ -487,7 +492,7 @@ grade(75)
 GeorgeWashington <- grade(60)
 ```
 
->
+>This line of code is just assigning grade(60) to GeorgeWashington. If you were to just type out GeorgeWashington and run that it would print out the grade.
 
 
 Here's a more complex example: 
@@ -510,11 +515,25 @@ gg.locations("San Diego", 1980)
 (@) Write a function that accepts two arguments: a state and a year. The function should pull all the locations in that state and year from the gayguides dataset and return a statement that says "Found a location in [state] called [location title]". (Where [state] is the state and [location title] is the title of a location in that year and state.)
 
 ```{r}
-
+data(gayguides)
+sy.locations<-function(c.state,c.year)
+for(i in 1:length(gayguides$state)){
+  if(gayguides$state[i]==c.state && gayguides$Year[i]==c.year){
+    print(paste("Found a location in", c.state, "called",gayguides$title[i]))
+  }
+}
 ```
 
 (@) Use the Boston Women Voters dataset (BostonWomenVoters). Write a function that accepts the name of an occupation. Your function should return new dataframe that includes the records for every voter listed with that occupation.  
 ```{r}
+data(BostonWomenVoters)
+info.occupation<-function(occupation)
+for(i in 1:length(BostonWomenVoters$Occupation)){
+  if(BostonWomenVoters$Occupation[i]==occupation)
+  print(BostonWomenVoters[i,])
+}
+info.occupation("Stenographer")
+
 
 ```
 
