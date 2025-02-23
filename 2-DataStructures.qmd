@@ -516,23 +516,27 @@ gg.locations("San Diego", 1980)
 
 ```{r}
 data(gayguides)
-sy.locations<-function(c.state,c.year)
+sy.locations<-function(c.state,c.year){
 for(i in 1:length(gayguides$state)){
   if(gayguides$state[i]==c.state && gayguides$Year[i]==c.year){
     print(paste("Found a location in", c.state, "called",gayguides$title[i]))
   }
 }
+}
+
 ```
 
 (@) Use the Boston Women Voters dataset (BostonWomenVoters). Write a function that accepts the name of an occupation. Your function should return new dataframe that includes the records for every voter listed with that occupation.  
 ```{r}
 data(BostonWomenVoters)
-info.occupation<-function(occupation)
+info.occupation<-function(occupation){
 for(i in 1:length(BostonWomenVoters$Occupation)){
   if(BostonWomenVoters$Occupation[i]==occupation)
   print(BostonWomenVoters[i,])
 }
+}
 info.occupation("Stenographer")
+
 
 
 ```
