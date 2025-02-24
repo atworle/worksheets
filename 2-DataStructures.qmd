@@ -330,7 +330,7 @@ for (p in 1:length(presidents)) {
 
 (@) Why does this work? What does `length()` do and why do we use it on `presidents`?
 
-> It works because presidents is a vector with the list of the 3 presidents, the for p in 1:length(presidents)
+> It works because presidents is a vector with the list of the 3 presidents, the for p in 1:length(presidents) is taking each president in the entire list. You use it on presidents because it is the vector that contains the list.
 
 Create a character vector that contains the title of each of your classes this semester. Can you write a `for` loop that prints out "I am enrolled in" and the name of each of your classes? ("I am enrolled in History 8150", "I am enrolled in History 8000".....etc). Hint: you'll need a function to combine the output and some text of your choosing inside the function. 
 
