@@ -1,7 +1,7 @@
 ---
 title: "Worksheet 2: Data Structures"
 author: "Antonio Worley"
-date: ""
+date: "02/24/2025"
 ---
 
 _This is the second in a series of worksheets for History 8500 at Clemson University. The goal of these worksheets is simple: practice, practice, practice. The worksheet introduces concepts and techniques and includes prompts for you to practice in this interactive document. When you are finished, you should change the author name (above), render your document to a pdf, and upload it to canvas. Don't forget to commit your changes as you go and push to github when you finish the worksheet._
@@ -165,17 +165,14 @@ gayguides[1:3,]
 (@) Can you find just the city and state for the first 5 entries? 
 ```{r}
 gayguides[1:5, 8:9]
-print(gayguides$city[1:5])
-print(gayguides$Year[1:5])
-#I used the print code first because it I couldn't keep it to 5 rows then I realized that putting the comma in brackets changes what is row and what is column
+
 ```
 
 (@) How about the street address and type for rows 2,555 to 2,560?
 
 ```{r}
 gayguides[2555:2560,5:6]
-print(gayguides$streetaddress[2555:2560])
-print(gayguides$type[2555:2560])
+
 ```
 
 (@) Load another dataset from `DigitalMethodsData`. Subset it to find some element of the data. Write the code below and then explain what element of the data you wanted to subset and why:
@@ -492,7 +489,7 @@ grade(75)
 GeorgeWashington <- grade(60)
 ```
 
->This line of code is just assigning grade(60) to GeorgeWashington. If you were to just type out GeorgeWashington and run that it would print out the grade.
+>This line of code is just assigning the function grade(60) to GeorgeWashington. If you were to just type out GeorgeWashington and run that it would print out the grade.
 
 
 Here's a more complex example: 
