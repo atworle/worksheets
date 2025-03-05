@@ -105,7 +105,7 @@ gayguides %>%
 (@) The amenity features column in gay guides contains a comma separated list of categorizations. (G), for example, stands for girls. However, this language changed over time and women's locations eventually are described as (L). What if we want to filter by any entry that has (G) OR (L) in the amenity feature column?  This is a bit more complicated because the entries are a comma separated list and (G) or (L) is often paired with other categorizations. How might you _search the dataframe for entries that match_ (G) or (L)?
 ```{r}
 library(tidyverse)
-chek<-gayguides %>%
+gayguides %>%
   filter(amenityfeatures == "(G)" | amenityfeatures== "(L)")
 ```
 
@@ -147,8 +147,9 @@ gayguides %>%
 
 (@) Using the `statepopulation` data, which state has the largest population in 1850? Write code that pulls only the relevant columns (state and 1850) and sorts it accordingly. 
 ```{r}
-data(statepopulation)
-statepopulation %>% 
+data(statepopulations)
+statepopulations %>% select(STATE, X1850) %>% arrange(desc(X1850))
+#New York
 ```
 
 ### Group_by() and Summarize()
@@ -171,16 +172,35 @@ What happened here? In this example, we asked group_by to create groups based on
 
 (@) You try, use group_by and summarize to find the total number of locations in each state, each year.
 ```{r}
+gayguides %>%
+  select(state) %>%
+  group_by(state) %>% 
+  summarize(count = n())
 
+gayguides %>% 
+  select(Year) %>%
+  group_by(Year) %>%
+  summarize(count = n())
 ```
 
 (@) Summarize can do more than just count rows. Can you use `summarize()` to find the average age for each occupation in the Boston Women Voters data?
 ```{r}
-
+data(BostonWomenVoters)
+BostonWomenVoters %>%
+  select(Occupation, Age) %>%
+  group_by(Occupation) %>%
+  summarize(avg_value = mean(Age, na.rm= TRUE))
 ```
 
 (@) In the `gayguides` data, on average how many locations did each city in South Carolina have between 1970 and 1975?
 ```{r}
+data(gayguides)
+gayguides %>%
+  filter(state == "SC" & Year %in% 1970:1975) %>%
+  group_by(city) %>%
+  summarize(count = n()) %>%
+  summarize(avg_count = mean(count))
+  
 
 ```
 
