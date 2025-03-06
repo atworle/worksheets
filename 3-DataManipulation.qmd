@@ -98,8 +98,8 @@ gayguides %>%
 
 (@) Can you find all locations in 1975 except for New York and San Francisco? 
 ```{r}
-gayguides %>% 
-  filter(Year == 1975 & state != "Ny" & state != "SF")
+x<-gayguides %>% 
+  filter(Year == 1975 & city != "NY" & city != "SF")
 ```
 
 (@) The amenity features column in gay guides contains a comma separated list of categorizations. (G), for example, stands for girls. However, this language changed over time and women's locations eventually are described as (L). What if we want to filter by any entry that has (G) OR (L) in the amenity feature column?  This is a bit more complicated because the entries are a comma separated list and (G) or (L) is often paired with other categorizations. How might you _search the dataframe for entries that match_ (G) or (L)?
@@ -173,12 +173,10 @@ What happened here? In this example, we asked group_by to create groups based on
 (@) You try, use group_by and summarize to find the total number of locations in each state, each year.
 ```{r}
 gayguides %>%
-  select(state) %>%
   group_by(state) %>% 
   summarize(count = n())
 
 gayguides %>% 
-  select(Year) %>%
   group_by(Year) %>%
   summarize(count = n())
 ```
@@ -187,9 +185,8 @@ gayguides %>%
 ```{r}
 data(BostonWomenVoters)
 BostonWomenVoters %>%
-  select(Occupation, Age) %>%
   group_by(Occupation) %>%
-  summarize(avg_value = mean(Age, na.rm= TRUE))
+  summarize(avg.age = mean(Age, na.rm= TRUE))
 ```
 
 (@) In the `gayguides` data, on average how many locations did each city in South Carolina have between 1970 and 1975?
@@ -207,7 +204,10 @@ gayguides %>%
 (@) Filter the dataset for only the values in the southernstates list (created in the block below). Then tell me, how many locations were in all the southern states in 1975?
 ```{r}
 southernstates <- c("AL", "AR", "FL", "GA", "KY", "LA", "MD", "MS", "NC", "SC", "TN", "TX", "VI", "WV")
-
+gayguides %>%
+  filter(state == southernstates & Year == 1975) %>%
+  group_by(state) %>%
+  summarize(count = n()) 
 ```
 
 ## Re-Shaping Data: Joins and Pivots
@@ -234,12 +234,26 @@ head(almshouse_admissions)
 (@) Below I've downloaded data about each of the census regions. Join this dataset with `gayguides`. Create a data frame that includes each of the regions and the total number of locations in 1980. How many locations appear in the Mountain region in 1980?
 ```{r}
 regions <- read.csv("https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/censusregions.csv")
+joinedgg<-left_join(gayguides, regions, by=c("state" = "State.Code"))
 ```
 
 (@) Explain what you did above. What variable did you join by and why? What results?
+I made a variable for the joined data set so it would be easier to access. I choose left_join because I felt the data in regions would fit better if it was to the right of the gayguides data set. Since the state abbrevations were what the data sets had in common I choose that as the variable to join. The results have the region and division from the regions data in the right most columns of gayguides.
 
 (@)How much did LGTBQ life grow between 1970 and 1980? Can you create a data frame that computes the growth in the number of locations between 1970 and 1980 for every state? For every region? 
 ```{r}
+growth.by.state<-joinedgg %>% 
+  filter(Year %in% 1970:1980) %>%
+  group_by(state) %>% 
+  summarize(count = n()) 
+
+growth.by.region<- joinedgg %>%
+  filter(Year %in% 1970:1980) %>%
+  group_by(Region) %>%
+  summarize(count = n())
+
+
+
 
 ```
 
@@ -259,17 +273,20 @@ sc.parks <- sc.parks %>%
 ```
 
 (@) What did this code do? 
->
+>The code turned the columns, excluding city and type_of_worker, to one column named year and then the values in those columns into a column named count. 
 
 (@) Here's another wide data frame. Can you turn this from a wide to a narrow data frame? 
 ```{r}
 rec.spaces <- read.csv("https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/PlayAreabyType.csv")
+rec.spaces.narrow<-rec.spaces %>%
+  pivot_longer(!type, names_to ="year", values_to = "count") %>%
+  arrange(year)
 ```
 
 The opposite of `pivot_longer()` is `pivot_wider()`. It "widens" data by increasing the number of columns and decreasing the number of rows. We can revert `sc.parks` back to a wide dataset using this function.
 ```{r}
 sc.parks %>%
-  pivot_wider(names_from = year, values_from = count)
+  pivot_wider(names_from = year, values_from = count,)
 ```
 
 (@) Widen the `sc.parks` dataset so that the column names are drawn from the type of recreation worker.
