@@ -306,23 +306,49 @@ Each of the functions covered in this worksheet are valuable tools for manipulat
 gayguides %>% 
     select(title, Year) %>%
     group_by(Year) %>%
-    summarize(count = n())
+    summarize(count = n()) %>%
+    summarize(count)
 ```
 The implicit question was, "How many locations appear in each year?". The `judges` dataset in provided in the DigitalMethodsData package is a large, messy, wide dataframe that contains a lot of information. Look at this dataframe and then compose a question to ask of the data.
 
 (@) First, tell me, what is the question you are asking? 
 ```{r}
-
+#What is the percentage of death as a termination?
 ```
 
 (@) Now write some code to address that question. Comment the code with notes that explain your thinking as you go. Use functions like select(), filter(), etc to pair down your dataset and reshape it to address your question. 
 ```{r}
+judges %>%
+  group_by(Termination..1.) %>%
+  filter(Termination..1. != "")%>%
+  summarize(count = n()) %>%
+  mutate(percentage = (count/sum(count) * 100)) %>%
+  arrange(desc(count))
 
+  
+  
 ```
 
 (@) Now ask a question of the `gayguides` data (or another dataset of your choice). What is the question you are asking? 
 ```{r}
 
+#I'm curious about how many of these women were single because many of them were young, it's impossible to tell from the data set however I think it's possible to get an idea. 
+data(BostonWomenVoters)
+women<-BostonWomenVoters %>%
+  filter(Name != "") %>%
+  group_by(Name)%>%
+  summarize(count = n()) %>%
+  summarize(sum(count))
+
+
+husbands<-BostonWomenVoters%>%
+group_by(Husband.Name) %>%
+  filter(Husband.Name != "")%>%
+  summarize(count = n()) %>%
+  summarize(sum(count))
+
+print(paste("The total number of women is", women, "and the total number of women who did not fill out the husband name block is", women-husbands))
+#obviously this means very little though it does show an interesting fact about the data, either married women did not care to write their husbands name down or single women were more likely to register to vote
 ```
 
 (@) Now write some code to address that question. Comment the code with notes that explain your thinking as you go. Use functions like select(), filter(), etc to pair down your dataset and reshape it to address your question. 
