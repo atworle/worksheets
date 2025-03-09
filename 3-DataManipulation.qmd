@@ -172,6 +172,7 @@ What happened here? In this example, we asked group_by to create groups based on
 
 (@) You try, use group_by and summarize to find the total number of locations in each state, each year.
 ```{r}
+data(gayguides)
 gayguides %>%
   group_by(state) %>% 
   summarize(count = n())
@@ -179,6 +180,8 @@ gayguides %>%
 gayguides %>% 
   group_by(Year) %>%
   summarize(count = n())
+
+
 ```
 
 (@) Summarize can do more than just count rows. Can you use `summarize()` to find the average age for each occupation in the Boston Women Voters data?
@@ -277,7 +280,6 @@ sc.parks <- sc.parks %>%
 
 (@) Here's another wide data frame. Can you turn this from a wide to a narrow data frame? 
 ```{r}
-rec.spaces <- read.csv("https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/PlayAreabyType.csv")
 rec.spaces.narrow<-rec.spaces %>%
   pivot_longer(!type, names_to ="year", values_to = "count") %>%
   arrange(year)
@@ -291,12 +293,17 @@ sc.parks %>%
 
 (@) Widen the `sc.parks` dataset so that the column names are drawn from the type of recreation worker.
 ```{r}
-
+sc.parks %>%
+  pivot_longer(!city & !type_of_worker, names_to = "year", values_to = "count") %>%
+  pivot_wider(names_from = type_of_worker, values_from = count) %>%
+  arrange(year)
 ```
 
 (@) Turn `rec.spaces` into a wide dataframe. 
 ```{r}
-
+rec.spaces %>%
+  pivot_longer(!type, names_to = "year", values_to = "count") %>%
+  pivot_wider(names_from = type, values_from = count)
 ```
 
 
@@ -313,17 +320,21 @@ The implicit question was, "How many locations appear in each year?". The `judge
 
 (@) First, tell me, what is the question you are asking? 
 ```{r}
-#What is the percentage of death as a termination?
+#What percent of termination was recorded as death?
 ```
 
 (@) Now write some code to address that question. Comment the code with notes that explain your thinking as you go. Use functions like select(), filter(), etc to pair down your dataset and reshape it to address your question. 
 ```{r}
+data(judges)
 judges %>%
   group_by(Termination..1.) %>%
   filter(Termination..1. != "")%>%
+  #here i'm just trying to filter out the blank cells
   summarize(count = n()) %>%
   mutate(percentage = (count/sum(count) * 100)) %>%
+  #here using a simple percentage equation with the calculation from previous summarize
   arrange(desc(count))
+  #arranging here so I can instantly see the highest percentage
 
   
   
@@ -331,33 +342,46 @@ judges %>%
 
 (@) Now ask a question of the `gayguides` data (or another dataset of your choice). What is the question you are asking? 
 ```{r}
-
-#I'm curious about how many of these women were single because many of them were young, it's impossible to tell from the data set however I think it's possible to get an idea. 
-data(BostonWomenVoters)
-women<-BostonWomenVoters %>%
-  filter(Name != "") %>%
-  group_by(Name)%>%
-  summarize(count = n()) %>%
-  summarize(sum(count))
-
-
-husbands<-BostonWomenVoters%>%
-group_by(Husband.Name) %>%
-  filter(Husband.Name != "")%>%
-  summarize(count = n()) %>%
-  summarize(sum(count))
-
-print(paste("The total number of women is", women, "and the total number of women who did not fill out the husband name block is", women-husbands))
-#obviously this means very little though it does show an interesting fact about the data, either married women did not care to write their husbands name down or single women were more likely to register to vote
+#One question about the suffrage movement I always have is: were these highly centralized groups of women or was it more web-like and loosely connected?
+#Are these women geographically connected or isolated?
 ```
 
 (@) Now write some code to address that question. Comment the code with notes that explain your thinking as you go. Use functions like select(), filter(), etc to pair down your dataset and reshape it to address your question. 
 ```{r}
+data(BostonWomenVoters)
+
+BostonWomenVoters %>%
+  group_by(Street.of.Residence.on.April.1, Occupation) %>%
+  #the reason I'm pairing with occupation is because I believe occupation offers more historical information than anything else in the dataset
+  summarize(count = n()) %>%
+  arrange(desc(count))
+  #once again desc here because there's so many entries and I want to see the numbers that matter
+  #my data reveals extremely interesting relationships between occupation and where these women lived. For example, 20 Stenographers lived on the same street, that's fascinating. Also 131 women who registered to vote lived on Saratoga Street. Is this data meaningful or can it be attributed to women grouping up knocking on doors and walking down to get registered? The biggest overlap was between housewifes and streets of residences, there were 10 streets that had hundreds of women. This perhaps points towards voter registration as social activity.
+
+business.place<-BostonWomenVoters %>%
+  group_by(Place.of.Business)%>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+  #I was curious to see how place of business played into this and it was extremely decentralized but that is probably just a reflection of the socioeconomics of this time period. However, there were repsonses that had "same" for this block which I would take to mean the responses with "same" was recorded at the same time as the one above it. This implies that at least two women went together to register. Was registering to vote a social activity?
+  
+
+
+
+
 
 ```
 
 (@) Write a function that filters the gay guides dataset. It should accept 2 arguments: year and state. When passed to the function the function should return only the title, type, state and year for each entry. 
 ```{r}
+data(gayguides)
+grab.by.state<- function(Year,state) {
+  gayguides %>%
+  filter(Year == !!Year, state == !!state) %>%
+  select(title,type,state,Year)
+  
+}
+
 
 ```
 
