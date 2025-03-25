@@ -28,7 +28,7 @@ library(gapminder) #this is a dataset
 library(ggplot2) 
 library(tidyverse)
 library(DigitalMethodsData)
-install.packages("gapminder")
+
 ```
 To begin, we're going to use one of R's built in datasets. First lets take a look at the data: 
 ```{r}
@@ -78,12 +78,15 @@ ggplot(data = gapminder, mapping = aes(x = gdpPercap, y=lifeExp, color=year)) + 
 
 (@) Using the same plot above, can you edit the code to add a trend line? (Hint: You'll need to add another geom)
 ```{r}
+x11()
 ggplot(data = gapminder, mapping = aes(x = gdpPercap, y=lifeExp, color=year)) + geom_point() + labs(x="GDP Per Capita", y="Life Expectency in Years", title="Life Expectency and Per Capita GDP by Year")+geom_smooth(method = "lm")
 ```
 
 
 (@) The file below contains data about the population of cities in 1930 and their recreation expenditures. Can you create a scatter plot from this data? 
 ```{r}
+x11()
+#need to use x11() to view plots on chromebook
 rec <- read.csv(file = "https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/Recreation-Expenditures.csv")
 
 ggplot(data = rec, mapping = aes(x =population, y= total_expenditures))+labs(x = "Population", y= "Total Expenditures")+geom_point()
@@ -104,6 +107,7 @@ ggplot(recreational.data, aes(x = population)) +
 
 (@) Use the Boston Women's voters dataset to create a histogram of the age of voters. 
 ```{r}
+x11()
 data(BostonWomenVoters)
 ggplot(data= BostonWomenVoters, aes(x = Age))+geom_histogram()
 
@@ -113,18 +117,23 @@ ggplot(data= BostonWomenVoters, aes(x = Age))+geom_histogram()
 
 (@) By default, `geom_histogram()` is choosing the number of bins. Can you change the number of bins or the bin width? (Hint: How might you look up the options for this function?)
 ```{r}
+x11()
+ggplot(data= BostonWomenVoters, aes(x = Age))+geom_histogram(bins=5, binwidth= 5)
+
+
 
 ```
 
 (@) Explain, what does changing the number of bins do? 
 
-> 
+> Changing the number of bins changes the number of groups of data(bars of the histogram). So for 5 bins the data set, ages in this case, will be broken up into 5 different groups. Binwidth increases granularity by altering the range of values in each bin.
 
 ### Barplots 
 
 A barplot (or barchart) is one of the most common types of graphic. Whereas a histogram shows the number of entries in each "bin" - a bar chart shows the relationship between a numeric and a categorical variable. Each entity in the categorical variable is represented as a bar. The size of the bar represents its numeric value. 
 
 ```{r}
+
 sc.rec <- recreational.data %>% group_by(state) %>% summarize(state.expenditures = sum(total_expenditures))
 ggplot(sc.rec, aes(x = state, y = state.expenditures )) +
   geom_col()
@@ -132,12 +141,21 @@ ggplot(sc.rec, aes(x = state, y = state.expenditures )) +
 
 (@) Using the `gayguides` data, create a bar chart that shows the number of locations in 1980 in South Carolina, Georgia, and North Carolina. 
 ```{r}
-
+x11()
+data(gayguides)
+gg<- gayguides %>% group_by(state) %>% 
+summarize(total.loc = n())%>% 
+filter(state %in% c("SC", "GA", "NC"))
+ggplot(gg, aes(x = state, y = total.loc))+ geom_col()
 ```
 
 (@) Using the `gayguides` data, plot the number of religious institutions in each state.
 ```{r}
-
+x11()
+ri<-gayguides %>%filter(type == "Religious Institution") %>%
+group_by(state) %>%
+summarize(total.ri = n())
+ggplot(ri, aes( x = state, y = total.ri))+geom_point()
 ```
 
 (@) Formulate a question based on a dataset of your choice. That question should be something that would be appropriately answered by a bar chart. What is the question you want to explore?
