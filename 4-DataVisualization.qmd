@@ -1,7 +1,7 @@
 ---
 title: 'Worksheet 4: Data Visualization'
-author: ""
-date: ""
+author: "Antonio Worley"
+date: "03/26/2025"
 ---
 
 _This is the fourth in a series of worksheets for History 8500 at Clemson University. The goal of these worksheets is simple: practice, practice, practice. The worksheet introduces concepts and techniques and includes prompts for you to practice in this interactive document. When you are finished, you should change the author name (above), render your document to a pdf, and upload it to canvas. Don't forget to commit your changes as you go and push to github when you finish the worksheet._
@@ -160,11 +160,22 @@ ggplot(ri, aes( x = state, y = total.ri))+geom_point()
 
 (@) Formulate a question based on a dataset of your choice. That question should be something that would be appropriately answered by a bar chart. What is the question you want to explore?
 
-<
+<As an extension to my question from last worksheet, what would the bostonwomenvoters data look like split up by relationship status? 
 
 (@) Now write the code to answer that question and use comments (`#`) to explain your thinking as you go.
 ```{r}
-
+x11()
+data(BostonWomenVoters)
+voter.status<-BostonWomenVoters %>%
+mutate(Court.of.Naturalization = str_to_lower(Court.of.Naturalization)) %>%
+#AI gave me the idea to make the column data lower case before piping it so the resulting table would group lower and upper case values like married and Married
+filter(Court.of.Naturalization %in% c("married", "single", "widow", "")) %>%
+#looked at initial filter and realized there were different spellings and extra info, decided to just lower case it and use the 3 main spellings
+#also wanted to include blank as well because I feel it's historically relevant
+group_by(Court.of.Naturalization) %>%
+count()
+ggplot(voter.status, aes(x = Court.of.Naturalization, y = n))+geom_col()+labs(x = "Married Status", y = "Number of Occurences")
+#Not sure if this is useful for analysis but it does allow for some kind of historical analysis, the significant amount of blanks could be very important or not important at all
 ```
 
 ### Line Charts
