@@ -160,11 +160,12 @@ ggplot(ri, aes( x = state, y = total.ri))+geom_point()
 
 (@) Formulate a question based on a dataset of your choice. That question should be something that would be appropriately answered by a bar chart. What is the question you want to explore?
 
-<As an extension to my question from last worksheet, what would the bostonwomenvoters data look like split up by relationship status? 
+>As an extension to my question from last worksheet, what would the bostonwomenvoters data look like split up by relationship status? 
 
 (@) Now write the code to answer that question and use comments (`#`) to explain your thinking as you go.
 ```{r}
 x11()
+library(dlpyr)
 data(BostonWomenVoters)
 voter.status<-BostonWomenVoters %>%
 mutate(Court.of.Naturalization = str_to_lower(Court.of.Naturalization)) %>%
@@ -175,7 +176,7 @@ filter(Court.of.Naturalization %in% c("married", "single", "widow", "")) %>%
 group_by(Court.of.Naturalization) %>%
 count()
 ggplot(voter.status, aes(x = Court.of.Naturalization, y = n))+geom_col()+labs(x = "Married Status", y = "Number of Occurences")
-#Not sure if this is useful for analysis but it does allow for some kind of historical analysis, the significant amount of blanks could be very important or not important at all
+#Not sure if this is useful for analysis but it does allow for some kind of historical analysis, the significant amount of blanks could be very important or not important at all. A portion of them are no doubt on accident, leaving a simple block unfilled. However, the sheer number seems to point to a more systematic reason for so many blanks, purposeful or perhaps the way the form was structured made it wasy to leave it blank. There's a good chance women just didn't think it was important to fill in this block.
 ```
 
 ### Line Charts
@@ -184,6 +185,7 @@ Line charts excel at demonstrating trends over time.
 
 ```{r}
 data(gayguides)
+x11()
 gg.byyear <- gayguides %>% group_by(Year) %>% summarize(count = n())
 ggplot(gg.byyear, aes(x = Year, y = count)) +
   geom_line()
@@ -191,12 +193,27 @@ ggplot(gg.byyear, aes(x = Year, y = count)) +
 
 (@) Create a line chart that shows the number of religious institutions in the gay guides data over time.
 ```{r}
+data(gayguides)
+x11()
+gg.ri<- gayguides %>% 
+filter(type == "Religious Institution") %>%
+group_by(Year) %>%
+summarize(count = n())
+ggplot(gg.ri, aes (x = Year, y = count))+geom_line()+labs(x = "Year", y = "Number of Religious Institutions")
+
 
 ```
 
 (@) In the gayguides data, danger or risk is indicated in several different ways. Sometimes it through the use of an amenity categorization of (HOT) or (AYOR) which meant that these locations were frequented by police and should be used at your own risk. Other times, locations were listed as "inquire locally" in either the description or address field. There are many reasons a location would have requested to have been listed this way. Many times, it was due to harassment and the location deemed it too dangerous to publicly list its location. Can you create a subset of the gay guides data about risk and then use it to create a chart about the usage of these indicators over time? 
 ```{r}
-
+data(gayguides)
+x11()
+risk.gg<- gayguides %>%
+filter(amenityfeatures %in% c("(AYOR)", "(HOT)") | description == "inquire locally" | streetaddress == "inquire locally") %>%
+group_by(Year) %>%
+summarize(count= n()) 
+View(risk.gg)
+ggplot(risk.gg, aes (x = Year, y = count))+ geom_line()
 ```
 
 
@@ -204,6 +221,7 @@ ggplot(gg.byyear, aes(x = Year, y = count)) +
 Unlike the previous exmaples, `facet_wrap` is not a geom.  It splits the chart window in several small parts (a grid), and displays a similar chart in each section. Each section usually shows the same graph for a specific group of the dataset. For example, remember the line chart above that graphed the number of locations in the `gayguides` data across each year? We can facet that by state to see the number of locations in each state in each year. 
 
 ```{r}
+x11()
 gg.byyear <- gayguides %>% filter(state == "SC" | state == "NC" | state == "GA") %>% group_by(state, Year) %>% summarize(count = n())
 
 ggplot(gg.byyear, aes(x = Year, y = count)) +
@@ -212,19 +230,57 @@ ggplot(gg.byyear, aes(x = Year, y = count)) +
 
 (@) Using the state recreation data, can you create a chart that outlines the total expenditures in South Carolina by city?
 ```{r}
+total.exp<- recreational.data %>% 
+filter(state == "SC") %>%
+group_by(city) %>%
+select(city, total_expenditures)
+x11()
+ggplot(total.exp, aes( x = city, y = total_expenditures))+geom_col()
 
 ```
 
 (@) Using the gayguides data can you select 5 types of locations and chart the number of each type between 1965 and 1980? 
 ```{r}
 
+type.loc<- gayguides %>%
+filter(type %in% c("Religious Institution", "Hotels", "Cruising Areas", "Bars/Clubs", "Book Store")) %>%
+filter(Year %in% 1965:1980) %>%
+group_by(type, Year) %>%
+summarize(count = n())
+x11()
+ggplot(type.loc, aes( x= factor(Year), y =count, fill = type))+geom_bar(stat = "identity", position = "dodge")+labs(x = "Years", y = "type of location")
+#used ai to explain how to separate the values using the stat and position functions in geom_bar, factor allows the numeric values of year to be used on x axis
+
 ```
 
 (@) Using this recreation dataset from last week, can you find the average number of volunteer and paid workers over time? 
 ```{r}
 rec.workers <- read.csv("https://raw.githubusercontent.com/regan008/DigitalMethodsData/main/raw/RecreationData-Wide.csv")
+avg.by.time<- rec.workers%>%
+pivot_longer(!city:type_of_worker, names_to = "year", values_to = "count")%>% 
+pivot_wider(names_from = type_of_worker, values_from = count) %>%
+mutate(across(everything(), ~replace(., is.na(.), 0))) %>%
+#replaces every NA with 0 because couldn't figure out how to just remove it
+select(!city) %>%
+group_by(year) %>%
+mutate (`male paid`= as.numeric(`male paid`),
+        `female paid` = as.numeric(`female paid`),
+        total_paid= `male paid` + `female paid`,
+        `men volunteer` = as.numeric(`men volunteer`),
+        `women volunteer` = as.numeric(`women volunteer`),
+        total_volunteer = `men volunteer` + `women volunteer`) %>%
+        #asked ai it said values in df might not be numeric so make them numeric so calculations will run, calculations wouldn't work until I did this
+summarize(avg_paid = mean(total_paid),
+          avg_volunteer = mean(total_volunteer)) %>%
+pivot_longer(cols= c(avg_paid, avg_volunteer),
+          names_to = "type",
+          values_to = "count")
+#need df to be longer because if I want ggplot to seperated paid and volunteer I need it to be grouped,
+ in this case by "type"
+x11()
+ggplot(avg.by.time, aes(x = year, y = count, color = type, group = type))+geom_line()+labs(x = "year", y = "average number of worker")
 
-
+#My god, this question destroyed me mentally, I learned the value of having a tidy data frame because this df was awful
 ```
 
 ### Practice
@@ -232,25 +288,93 @@ In the slots below use the datasets for class (or a dataset of your choice) to c
 
 (@) Plot 1
 ```{r}
+data(BostonWomenVoters)
+street.count<-BostonWomenVoters %>%
+group_by(Street.of.Residence.on.April.1) %>%
+summarize(count = n()) %>%
+arrange(desc(count))
+#now i know what street I want to use
+street.age<-BostonWomenVoters %>%
+filter(Street.of.Residence.on.April.1 %in% c("Beacon Street", "Newbury Street, Commonwealth Avenue")) %>%
+#ran this for the top 4 streets from street.count, excluded saratoga
+group_by(Age) %>%
+summarize(count = n())
+bar.age<-street.age %>%
+  mutate(age_group = cut(Age, 
+  breaks = seq(20, 80, by = 10), 
+  labels = c("20-30", "31-40", "41-50", "51-60", "61-70", "71-80"),
+  right = FALSE)) %>%  
+  group_by(age_group) %>%
+  summarize(count = sum(count))
+
+x11()
+ggplot(bar.age, aes(x = factor(age_group), y = count))+geom_bar(stat = "identity")
+
 
 ```
 
 (@) Plot 1 explanation: 
->
+>So I believe I've found something really interesting. I was interested to see what the age breakdown of a common street address would be. I assumed it would show the most populous street being comprised of mostly younger women but the barchart I made clearly shows that the most populous(when I saw populous I mean street that was recorded a lot) street was more populated by middle aged women or in general women aged 30-60. Saratoga was an outlier street with a more balanced age demographic but 3 of the 4 most populous streets (based on the voter data) leaned more to the older age groups. Perhaps young single women lived in a more spread out manner and the older women just happened to be married and lived on the same street. Basically, social voting was more prevalent in older age groups because younger single women were working or decentralized?
 
 (@) Plot 2
 ```{r}
 
+occup.num<-BostonWomenVoters%>%
+group_by(Place.of.Business) %>%
+summarize(count = n()) %>%
+arrange(desc(count))
+
+occup.by.age<- BostonWomenVoters %>%
+filter(Place.of.Business %in% c("Jordan Marsh Co.", "United Drug Co."))%>%
+group_by(Age) %>%
+summarize(count = n())
+x11()
+#originally used histogram then realized it was only counting the number of ages with the count for example 3 people at age 21 would be 1 count in the bin of age 20-30 so I grouped it myself to make a bar chart
+for.bar<-occup.by.age %>%
+  mutate(age_group = cut(Age, 
+  #stack overflow had cut as a suggestion
+  breaks = seq(20, 80, by = 10), 
+  labels = c("20-30", "31-40", "41-50", "51-60", "61-70", "71-80"),
+  right = FALSE)) %>%  
+  #this was suggested by AI, it apparently ensures that the right values or upper values are not included in my self made bins
+  group_by(age_group) %>%
+  summarize(count = sum(count))
+
+x11()
+ggplot(for.bar, aes(x = factor(age_group), y = count))+geom_bar(stat = "identity")
+#it would not make bar chart unless I used stat= identity, asked ai why it said because ggplot will attempt to compute count itself instead of using my own count column
 ```
 
 (@) Plot 2 explanation: 
->
+>This bar chart somewhat confirms my intuitions after the first graph. The women who recorded their occupation were more likely to be younger women. To clarify, this barchart shows the age breakdown of the most commonly listed place of work, excluding blank and "Same". An age breakdown of at home, or variations of, were older. So it doesn't seem that surprising that more younger women were working but this coupled with the previous chart points to place of work potentially being a social organization point for women voters.
+
 
 (@) Plot 3. For this one, try a different kind of plot. [Check out a useful gallery here.](https://github.com/regan008/DigitalMethodsData/blob/main/raw/RecreationData-Wide.csv)
 (For this week, avoid choosing a map. We'll talk more about maps and geographic data over the next two weeks.)
 ```{r}
+street.age<-BostonWomenVoters %>%
+filter(Street.of.Residence.on.April.1 %in% c("Beacon Street", "Newbury Street, Commonwealth Avenue")) %>%
+#ran this for the top 4 streets from street.count, excluded saratoga
+group_by(Age) %>%
+summarize(count = n())
+bar.age<-street.age %>%
+  mutate(age_group = cut(Age, 
+  breaks = seq(20, 80, by = 10), 
+  labels = c("20-30", "31-40", "41-50", "51-60", "61-70", "71-80"),
+  right = FALSE)) %>%  
+  group_by(age_group) %>%
+  summarize(count = sum(count))
+
+expanded.df<- data.frame(age = rep(street.age$Age, street.age$count))
+#I realized that the chart I made was horrible to make visualizations with if I want to chart frequency because the count represents number of times the age appeared. I wanted to expand that so for example, age 23|3 appears as 23,23,23. 
+View(expanded.df)
+x11()
+ggplot(expanded.df, aes(x = age, y = ""))+ geom_violin() +
+  labs(title = "Ages distribution", x = "age", y = "frequency")
+  #could not figure out how to show ggplots custom frequency calculation
+
 
 ```
 
 (@) Plot 3 explanation: 
->
+>After doing some research I found the violin plot, which I think perfectly demostrates what I was trying to convey with the bar chart but better. For the streets with the most women voters, the age distribution shows a distinct lean towards 40-60. However the violin plot does show that there were a fair amount of 30(or 20-40) year olds as well. This plot better demonstrates my observation that older age groups lived together, or more precisely on the same street. Though it wasn't necessarily by a dramatic amount, it is still noticeable pointing to some sociological explanation. As stated before, social voting for older women was perhaps due to geographic proximity while for younger women it was due to occupational proximity. This is all under the assumption that women who lived on the same street interacted at all though, my intuitions tell me this is true. 
