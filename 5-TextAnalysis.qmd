@@ -1,7 +1,7 @@
 ---
 title: 'Worksheet 5: Text Analysis'
-author: ''
-date: ''
+author: 'Antonio Worley'
+date: '04/01/2025'
 ---
 
 _This is the fifth in a series of worksheets for History 8500 at Clemson University. The goal of these worksheets is simple: practice, practice, practice. The worksheet introduces concepts and techniques and includes prompts for you to practice in this interactive document. When you are finished, you should change the author name (above), render your document to a pdf, and upload it to canvas. Don't forget to commit your changes as you go and push to github when you finish the worksheet._
@@ -40,7 +40,6 @@ This package includes both the metadata about these speeches in `sotu_meta` and 
 
 ```{r}
 meta <- as.data.frame(sotu_meta)
-head(meta)
 ```
 
 This package also includes a function that will let us write all of the files to disk. This is crucial but also an unusual step because when conducting text analysis in the real world, you will not have an R package filled with the data. Rather you will have to organize the metadata and load the files yourself. Writing these to the disk allows us to practice that step. 
@@ -104,8 +103,8 @@ The function `unnest_tokens()` also has an option called token. Tokenizing by wo
 (@)Use the documentation to tokenize the dataset into sentences: 
 ```{r}
 sotu_sentences<-sotu_whole %>%
-  unnest_tokens(sentence, text)
-  View(sotu_sentences)
+  unnest_tokens(sentence, text, token = "sentences")
+  View(head(sotu_sentences))
 
 ```
 
@@ -127,7 +126,9 @@ head(sotu_bigrams$bigram)
 
 (@) Use `unest_tokens()` to create tri-grams. 
 ```{r}
-
+sotu_trigrams <- sotu_whole %>%
+  unnest_tokens(trigram, text, token = "ngrams", n =3)
+  head(sotu_trigrams$trigram)
 ```
 
 ### Stopwords
@@ -193,7 +194,7 @@ tidy_sotu <- sotu_whole %>%
 ```
 (@) Before we move forward, take a minute a describe the chunk of code you just ran. What does each section do and how does it reflect the workflow for a topic modeling project? What are the important steps that are unique to topic modeling? 
 
->
+>The first line turns sotu-meta into a dataframe, formalizes it into columns and rows. The next two are taking the filepaths from the sotu_dir directory and generating a variable that contains all the text files. The next chunk is combining the meta and text data frames. The final part is tokenizing the text into single word tokens then removing stopwords. In general, this seems like a typical workflow though the first part would be done differently depending on how your data is saved and how you access it. 
 
 
 The most basic kind of analysis we might be interested in doing is counting words. We can do that easily using the `count()` function: 
@@ -212,7 +213,7 @@ tidy_sotu %>%
 This data frame is to big to understand quickly without visualizing it. We can create a bar chart to better understand it: 
 ```{r}
 library(ggplot2)
-
+x11()
 tidy_sotu %>%
   filter(word %in% c("war", "peace")) %>% 
   count(year, word) %>% 
@@ -232,9 +233,9 @@ tidy_sotu %>%
 
 (@) Think back to the metadata that we loaded about these speeches. Why are more modern president's state of the union addresses shorter? 
 
->
+>Based on the meta data, all the longest speeches were written speeches, Jimmy Carter is the only modern president to have written speeches, though he has a few non-written as well. 
 
-(@) Filter the dataset to address this discrepancy and the recreate these statistics: 
+(@) Filter the dataset to address this discrepancy and then recreate these statistics: 
 ```{r}
 
 ```
@@ -266,7 +267,7 @@ tidy_sotu %>%
 ```
 (@) The code above is commented to help you follow it. Walk through the code above, and explain what each line does in your own words. If its a function you are unfamiliar with, look up the documentation.
 
-> 
+> The count() line is counting the words per president, the next is grouping by president so the calculations are done for each president. The mutate is creating columns that contains total number of words, term_freq, as well as defining what they are so n_tot is the total words and term_freq is a calculation of n words divided by total words. Then arranging by most frequent and taking the top word for each president.
 
 ### TF-IDF
 
@@ -305,7 +306,8 @@ sotu.tf.idf %>% arrange(desc(tf_idf))
 (@) Pick a president who served more than one term. Filter the dataset and generate both raw word counts and tf-idf scores for that president. What words are most significant in each method? Why and what does that tell you about that president? 
 
 ```{r}
-
+sotu.tf.idf %>%
+  filte
 ```
 
 ### Co-Occurance
