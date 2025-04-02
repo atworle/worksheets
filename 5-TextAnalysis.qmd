@@ -292,7 +292,6 @@ We can feed that to the function and get the tf-idf:
 sotu.tf.idf <- tidy_sotu %>%
   count(doc_id, word, sort = TRUE)  %>%  
   bind_tf_idf(word, doc_id, n) 
-
 head(sotu.tf.idf)
 ```
 
@@ -306,8 +305,13 @@ sotu.tf.idf %>% arrange(desc(tf_idf))
 (@) Pick a president who served more than one term. Filter the dataset and generate both raw word counts and tf-idf scores for that president. What words are most significant in each method? Why and what does that tell you about that president? 
 
 ```{r}
-sotu.tf.idf %>%
-  filte
+jef.tf.idf<- tidy_sotu %>%
+  filter(president == "Thomas Jefferson") %>%
+  count(doc_id, word, sort = TRUE)  %>%  
+  bind_tf_idf(word, doc_id, n)  
+  
+  jef.tf.idf %>% arrange(desc(tf_idf))
+#So district, decrees, and embargo had the highest tf_idf. Decrees I'm not entirely certain about but most likely this is a reference to relationships with France and Britain. This in fact connects to embargo, Jefferson enacted an embargo in 1807 as a result of the napoleonic wars and intereference from these two countries. District I have no idea but presumably he's referencing something specific with district, like a place.
 ```
 
 ### Co-Occurance
