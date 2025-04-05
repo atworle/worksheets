@@ -34,6 +34,7 @@ library(SnowballC)
 First, lets install the State of the Union package. This package contains text of all the state of the Union addresses from Washington to Trump. Run `install.packages` to install the `sotu` package. 
 ```{r}
 library(sotu)
+
 ```
 
 This package includes both the metadata about these speeches in `sotu_meta` and the texts themselves in `sotu_texts`. Lets first look at the metadata associated with this package. 
@@ -229,14 +230,36 @@ tidy_sotu %>%
   group_by(president) %>% 
   summarize(avg_words = mean(n)) %>% 
   arrange(desc(avg_words))
+meta
 ```
 
 (@) Think back to the metadata that we loaded about these speeches. Why are more modern president's state of the union addresses shorter? 
 
->Based on the meta data, all the longest speeches were written speeches, Jimmy Carter is the only modern president to have written speeches, though he has a few non-written as well. 
+>Based on the meta data, all the longest speeches were written speeches, Jimmy Carter was the last president to have written speeches, though he has a few non-written as well. 
 
 (@) Filter the dataset to address this discrepancy and then recreate these statistics: 
 ```{r}
+sotu_written<- tidy_sotu %>%
+  filter(sotu_type == "written")
+sotu_speech <- tidy_sotu %>%
+  filter(sotu_type == "speech")
+
+written_length<-sotu_written %>%
+  count(president, doc_id)  %>% 
+  group_by(president) %>% 
+  summarize(avg_words = mean(n)) %>% 
+  arrange(desc(avg_words))
+
+speech_length<-sotu_speech %>%
+    count(president, doc_id)  %>% 
+  group_by(president) %>% 
+  summarize(avg_words = mean(n)) %>% 
+  arrange(desc(avg_words))
+combined<- bind_rows(
+  mutate(written_length, type = "written"),
+  mutate(speech_length, type = "speech")
+)
+View(combined)
 
 ```
 
@@ -311,7 +334,7 @@ jef.tf.idf<- tidy_sotu %>%
   bind_tf_idf(word, doc_id, n)  
   
   jef.tf.idf %>% arrange(desc(tf_idf))
-#So district, decrees, and embargo had the highest tf_idf. Decrees I'm not entirely certain about but most likely this is a reference to relationships with France and Britain. This in fact connects to embargo, Jefferson enacted an embargo in 1807 as a result of the napoleonic wars and intereference from these two countries. District I have no idea but presumably he's referencing something specific with district, like a place.
+#So district, decrees, and embargo had the highest tf_idf. Decrees I'm not entirely certain about but most likely this is a reference to relationships with France and Britain. This in fact connects to embargo, Jefferson enacted an embargo in 1807 as a result of the napoleonic wars and naval intereference from these two countries. District I have no idea but presumably he's referencing something specific with district, like a place.
 ```
 
 ### Co-Occurance
@@ -334,6 +357,7 @@ Now we have a list of words that appear near each other in the text as well as t
 library(igraph)
 library(ggraph)
 
+
 sotu_word_pairs %>% 
   filter(n >= 200) %>%  # only word pairs that occur 200 or more times
   graph_from_data_frame() %>% #convert to graph
@@ -346,69 +370,125 @@ sotu_word_pairs %>%
 ```
 (@) Create a network graph that shows the relationship between words that appear between 125 and 175 times.
 ```{r}
-
+sotu_word_pairs %>% 
+  filter(n %in% 125:175) %>% 
+  graph_from_data_frame() %>% 
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha = n, edge_width = n), edge_colour = "tomato") +
+  geom_node_point(size = 5) +
+  geom_node_text(aes(label = name), repel = TRUE, 
+                 point.padding = unit(0.2, "lines")) +
+  theme_void()
 ```
+## Analyzing Historical Journals
 
-## Analyzing Historical Newspapers About Buffalo Bill
+In the github repository below I have included the text and metadata for a journal called _Mind and Body_ which ran from the 1890s until the late 1930s and chronicled the development of the physical education profession. This profession paralleled many important developments in American history through the Progressive Era, World War I, the 1920s, and finally the Great Depression. This dataset was OCR'd from copies stored in Google Books. Using the metadata provided and the raw text files can you use what you learned above to analyze these texts? What historical conclusions might you be able to draw?
 
-To practice text analysis this week you will be helping Dr. Seefeldt with his research. In the github repository below I have included a metadata file containing all of the associated info from each article and a txt folder with each text file. 
-
-The dataset is described by Dr. Seefeldt this way: 
-> The project staff identified 99 visits to Indiana communities, some of which included performances spanning two or more days.  We located and captured a total of 720 Indiana newspaper pieces, including 273 articles promoting specific Wild West performances, 74 substantive pieces documenting locally-based reception to these performances, and 373 extraneous items, including advertisements, images, and reprints of articles generated elsewhere.  In total, the team transcribed approximately 740 items (R = Reception; P = Promotion; E = Extraneous)
-
-Use this link to read more about the project and the historical context: [https://docs.google.com/document/d/1LnmyCob5zc984EkMAx3sXlXQqhNbm9O8XV4O3HrQUbQ/edit?usp=sharing](https://docs.google.com/document/d/1LnmyCob5zc984EkMAx3sXlXQqhNbm9O8XV4O3HrQUbQ/edit?usp=sharing)
-
-You should use the rest of this worksheet to practice text analysis (and R more broadly) by exploring this dataset. Using the metadata provided and the raw text files can you use what you learned above to analyze these texts? What historical conclusions might you be able to draw? Perform the textual analysis and then write up your findings for Dr. Seefeldt. What might he be able to draw from this analysis? I will then take your work, compile it, and share it with him. Here are 3 research questions to get started. You can use one of these or come up with your own. 
-
-* Is there a difference in promotion language vs. reception language. In other words, what was BBWW selling and what did Indiana newspapers find remarkable.
-* Can we detect some change over time in promotion language and reception language (marketing and reviewing)? Were there types of characters, scenarios, action promised in promotional material and/or noted in reviews earlier vs later?
-* What can be gleaned from the items tagged as extraneous as far as topics? These are news items that are somehow related to BBWW. Crime, finances, celebrity, etc.
-
-
-Write up a research plan in the space below. What are you looking to explore?
-
-> 
-
-Lets download the data. 
+Note that when you are loading text from a file the process is slightly different. Above we were loading text from a R package which necessitates a different approach and is not something you would do frequently in practice. The readtext function takes a directory of text files and loads them into a dataframe. We also load a metadata file separately. You will need to join those two dataframes together to make use of the information in the metadata file. 
 ```{r}
 #| eval: false
 #zip file of all the .txt files. One for each issue. 
-download.file("https://github.com/dseefeldt/IndianaNewspapers/raw/main/bb-txt.zip", "bb-txt.zip")
-unzip("bb-txt.zip")
+download.file("https://github.com/regan008/8510-TextAnalysisData/raw/refs/heads/main/MindAndBody.zip", "MindAndBody.zip")
+unzip("MindAndBody.zip","C:/Users/anton/Desktop/" )
 
-# Metadata that includes info about each article.
-bb.metadata <- read.csv("https://raw.githubusercontent.com/dseefeldt/IndianaNewspapers/main/metadata.csv")
+# Metadata that includes info about each issue.
+metadata <- read.csv("https://raw.githubusercontent.com/regan008/8510-TextAnalysisData/main/mb-metadata.csv")
+
+mb <- readtext("C:/Users/anton/Desktop/txt/*.txt")
+
+mb <- mb %>%
+  mutate(doc_id = gsub("MB_", "", doc_id))
+
+joined_data<- mb %>%
+  full_join(metadata, by = join_by(doc_id == Filename))
+  
+
+
+
+
 ```
 
-(@) There are a few problems with this metadata from a tidy data perspective. First the date column isn't useful for assessing change over time. Can you split it into 3 columns one for year, month, and day? This will be useful if you want to try and identify change over time. Use the Date column not the FullDate column. This column is messy and you'll need to clean it up in order to have useful data. 
+(@) Add code chunks below and intersperse text to explain what you are doing and why.
+
 ```{r}
+joined_tokens<-joined_data %>%
+  mutate(text = gsub("[0-9]", "", text)) %>%
+  #decided to add this after numbers kept appearing in every calculation
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words)
+  #this is simple preprocessing the df for text analysis, made a df with word tokens
+cc<-joined_tokens %>%
+  count(word, sort = TRUE)
+  #I know very little about the data so I want to do a count and see most common words to get an idea 
+View(head(cc,50))#numbers in this list but it's fine I got plenty of info
+
+over_time<-joined_tokens %>%
+  filter(word %in% c("boys", "girls")) %>%
+  group_by(Year) %>%
+  count(word)
+ggplot(over_time, aes(x = Year, y = n, color = word, group = word))+geom_line()+labs(title= "Mentions of Boys and Girls Over Time", x = "Year", y = "Number of Mentions")
+#made line plot to denote any changes over time, girls jumps in the 1920s but equalizes again towards 1930, linked to suffrage movement?
+
+
+joined_tokens_freq <- joined_tokens %>%
+  count(doc_id, word, sort = T)  %>%
+  group_by(doc_id) %>% 
+  mutate(n_tot = sum(n), 
+         term_freq = n/n_tot) %>%
+         arrange(desc(term_freq))
+#why is left so common in these? Im assuming it's showing a picure or something maybe?
+#wanted to see relative frequency not too informative
+
+View(head(joined_tokens_freq,50))
+
+cc.tf_idf <- joined_tokens %>%
+  count(doc_id, word, sort = TRUE)  %>%  
+  bind_tf_idf(word, doc_id, n) %>%
+  arrange(desc(tf_idf)) 
+#same for this, was just curious but tiere and quarte are highest tf_idf, context important for that I guess
+  
+View(head(cc.tf_idf))
 ```
 
-(@) Now lets load the BB data. This happens in a slightly different way than with the SOTU data since its local data and not data from an R package. 
+
+
+(@) Choose one of the datasets from this repository or use one of your own: https://github.com/regan008/8510-TextAnalysisData. Note that there are both zip files with .txt files as well as separate metadata files for each publication in this repo. 
+
+Write a text analysis script that explores and asks questions of the texts. At the end write a summary that analyzes the results you found. Be sure to rely on your historical knowledge. What can we learn from applying the strategies you've learned in this worksheet to analyze these documents?
+
 ```{r}
-data_dir <- paste(getwd(), "/txt", sep = "")
-bb <- readtext(paste0(data_dir, "/*.txt"))
+df <- read_csv("C:/Users/anton/Desktop/ocr_texts/1870-1875.csv")
+#this is just on my computer right now, it contains around 12,000 pages of the new york herald from 1870-1875. It only includes pages 3-9 based on my judgement that these are the pages with the most pertinent information
+df<-df[,c("sequence", "date", "ocr_eng")]
+#the csv is a df that already has meta data and text joined, this is just taking the few things I would need for analysis
+word_tokens <- df %>%
+  unnest_tokens(word, ocr_eng) %>%
+  anti_join(stop_words)
+#simple workflow to prepare text, I am choosing to not stem because I am looking at words like democrat and republican, stemming could potentially group democrat and democracy etc and I am interested in references to the groups themselves
+raw.count<-word_tokens %>%
+  count(word, sort = TRUE)
+#doubt it's helpful because of ocr but trying to see raw counts
+View(head(raw.count,100))
+words.per.year<-word_tokens %>%
+  mutate(year = substr(date, 1, 4),
+    #this creates a column with only the year , allowing me to calculate number of words per year, the date is just a sequence of numbers like 18750101
+   word = gsub("s$", "", word)) %>%  
+   #ai suggested this so my counts of democrat and republican would include the plurals
+  #this creates a column with only the year , allowing me to calculate number of words per year
+  filter(word %in% c("democrat", "republican","reconstruction", "money", "labor", "economy", "freedmen")) %>%
+     group_by(year) %>% 
+     count(word)
+View(words.per.year)
+ggplot(words.per.year, aes(x = year, y = n, color = word, group = word))+geom_line()+labs(title= "Word Count Over Time", x = "Year", y = "Number of Mentions")
+#making a line chart to make sense of the counts over time
+
+#So lots of the words in the raw count are useless because ocr errors and numbers, however, looking at the top 100 words is helpful, there are words like war, government, market, committee, party, president. These repeated words would be very present in the readers of this newspaper, however, they also represent the key themes of the 1870s. The depressed economic conditions, most notably the panic of 1873, definitely makes the count of the word market make sense. War, government, committee, party, and president would all fit under a 'topic' of politics in the 1870s. Memories of the civil war would flavor politics, the election of 1872 and Grant's presidency so war would certainly be prominent in the minds of Americans. The growing and intense party combat between the democrats and republicans, culminating in the democratic sweep in 1874, definitely add nuance to the occurence of the word party. What is most fascinating about this list of counts is that these counts come from pages of a newspaper that ran many types of stories and had many different sections to it. Despite this, the political and economic turbulence bleeds through into this pure quantative analysis. In essence, the newspaper could be seen as a reflection of the public AND a creator of public perception. 
+#A number of nuanced analyses could come from the line chart but two things are glaring. The election of 1872 led to spikes in the words labor, republican, and democrat. Also, looking at this chart provides many interesting questions but also confirms intuitions. After the panic of 1873 there are spikes in the words money and economy, they remain elevated. Most interestingly, the word democrat spikes and increases while the word republican begins going down. 
+
+
+
+
+
+
+
 ```
-
-(@) Now you need to join this with the metadata for each file. Note that doc_id and Filename are the same value. How would you join two datasets together in R so that you can proceed with textual analysis? 
-```{r}
-
-```
-
-(@) Now you can begin your textual analysis for Dr. S. Add code chunks below and intersperse text to explain what you are doing and why in the text of the worksheet. 
-```{r}
-
-
-```
-
-
-(@) Finally, when you are all done. Write up your findings. What research question did you focus on and what did you learn? 
-
-
-
-
-
-
-
-
-
