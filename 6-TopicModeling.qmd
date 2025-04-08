@@ -36,10 +36,9 @@ metadata <- read.csv("https://raw.githubusercontent.com/regan008/8510-TextAnalys
 
 meta <- as.data.frame(metadata)
 #meta$Filename <- paste("MB_", meta$Filename, sep="")
-file_paths <- system.file("TheAmericanCity/")
-ac_texts <- readtext(paste("TheAmericanCity/", "*.txt", sep=""))
-ac_whole <- full_join(meta, ac_texts, by = c("filename" = "doc_id")) %>% as_tibble() 
 
+ac_texts <- readtext(paste("/home/antonioworley70/TheAmericanCity/*.txt"))
+ac_whole <- full_join(meta, ac_texts, by = c("filename" = "doc_id")) %>% as_tibble() 
 tidy_ac <- ac_whole %>%
   unnest_tokens(word, text) %>% 
   filter(str_detect(word, "[a-z']$")) %>% 
@@ -75,7 +74,6 @@ The second important option when running `LDA()` is the seed option. You don't w
 Lets now train our model. This will take a few minutes: 
 ```{r}
 ac.lda <- LDA(ac.dtm, k = 5, control = list(seed = 12345))
-ac.lda
 ```
 
 Now we have a LDA topic model that has 5 topics. There are two ways to look at this model: word-topic probabilities and document-topic probabilities. 
@@ -93,6 +91,7 @@ What we have here is a list of topics and the weight of each term in that topic.
 ac.top.terms <- ac.topics %>%
   arrange(desc(beta)) %>% 
   group_by(topic) %>% slice(1:5)
+  x11()
 ac.top.terms %>%
   mutate(term = reorder_within(term, beta, topic)) %>%
   ggplot(aes(beta, term, fill = factor(topic))) +
@@ -119,7 +118,7 @@ ac.top.terms %>%
 Another useful way to look at the words in each topic is by visualizing them as a wordcloud.
 ```{r warning=FALSE}
 library(wordcloud)
-install.packages(wordcould)
+x11()
 topic1 <- ac.topics %>% filter(topic == 2)
 wordcloud(topic1$term, topic1$beta, max.words = 100, random.order = FALSE,
     rot.per = 0.3, colors = brewer.pal(6, "Dark2"))
@@ -149,6 +148,7 @@ topics.by.year <- full_join(ac.documents, metadata, by = join_by(document == fil
 Now what we have is a document that includes the proportion of each topic in each document. Because this is a dataset about a periodical, we have values in our metadata that will make it easy to plot the distrubtion of a topic over time -- in this case for each edition of the journal.
 ```{r}
 topics.by.year$issue_date <- paste(topics.by.year$month, " ", topics.by.year$year, sep = "")
+x11()
 ggplot(data=topics.by.year, aes(x=issue_date, y=gamma)) + geom_bar(stat="identity") + facet_wrap(~ topic, scales = "free") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
