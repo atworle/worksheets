@@ -159,17 +159,32 @@ Using this we can tell that topic 5, which from earlier had the words improve, g
 #| eval: false
 download.file("https://github.com/regan008/8510-TextAnalysisData/blob/main/MindAndBody.zip?raw=true", "MB.zip")
 unzip("MB.zip")
+colnames(mb.metadata)
 ```
 
 ```{r}
 # Metadata that includes info about each issue.
 mb.metadata <- read.csv("https://raw.githubusercontent.com/regan008/8510-TextAnalysisData/main/mb-metadata.csv")
+mb<-readtext(paste("/home/antonioworley70/TheAmericanCity/txt/*.txt"))
+full.mb<- mb%>%
+  full_join(mb.metadata, by = join_by(doc_id == Filename))
+
+mb.tokens<- full.mb %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) 
+
+mb.tokens<- mb.tokens %>%
+  filter(!grepl("[0-9]", word))   
+dtm<-mb.tokens
+tv.lda<- LDA(dtm, k = 25, control = list(seed = 12345), method = "Gibbs", alpha = .05)
+
+
 ```
 
 (@) What happens if you create a custom stopword list? How does this change the model?
 ```{r}
-
 ```
+
 
 (@) Can you create a topic model for just the documents in the 1920s? How does that change the model? 
 ```{r}
