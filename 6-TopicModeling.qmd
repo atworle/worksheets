@@ -157,15 +157,19 @@ Using this we can tell that topic 5, which from earlier had the words improve, g
 (@) Use the rest of this worksheet to experiment with topic modeling. I've added the code to download a much larger dataset - the issues of Mind and Body. This corpus has 413 documents ranging from the 1890s to 1936. You'll want to start with at least 25 topics. 
 ```{r}
 #| eval: false
-download.file("https://github.com/regan008/8510-TextAnalysisData/blob/main/MindAndBody.zip?raw=true", "MB.zip")
+download.file("https://github.com/regan008/8510-TextAnalysisData/blob/main/MindAndBody.zip?raw=true", "C:/Users/anton/Desktop/MB.zip")
 unzip("MB.zip")
-colnames(mb.metadata)
+
 ```
 
 ```{r}
 # Metadata that includes info about each issue.
 mb.metadata <- read.csv("https://raw.githubusercontent.com/regan008/8510-TextAnalysisData/main/mb-metadata.csv")
-mb<-readtext(paste("/home/antonioworley70/TheAmericanCity/txt/*.txt"))
+mb<-readtext(paste("C:/Users/anton/Desktop/txt/*.txt"))
+
+mb<- mb %>%
+  mutate(doc_id = gsub("MB_", "", doc_id))
+
 full.mb<- mb%>%
   full_join(mb.metadata, by = join_by(doc_id == Filename))
 
@@ -174,38 +178,128 @@ mb.tokens<- full.mb %>%
   anti_join(stop_words) 
 
 mb.tokens<- mb.tokens %>%
-  filter(!grepl("[0-9]", word))   
-dtm<-mb.tokens
-tv.lda<- LDA(dtm, k = 25, control = list(seed = 12345), method = "Gibbs", alpha = .05)
+  filter(!grepl("[0-9]", word))
+ 
 
+mb.dtm <- mb.tokens %>% 
+  count(doc_id, word) %>% 
+  cast_dtm(doc_id, word, n)
+
+
+mb.lda<- LDA(mb.dtm, k = 25, control = list(seed = 12345), method = "Gibbs", alpha = .05)
+
+mb.topics <- tidy(mb.lda, matrix = "beta")
+mb.top.terms <- mb.topics %>%
+  arrange(desc(beta)) %>% 
+  group_by(topic) %>% slice(1:5)
+  View(mb.top.terms)
+  #topic 1 I don't really know but maybe fencing? topic 2 seems like nothing, topic 3 something to do with being outside, topic 4 food, topic 5 no idea, topic 6 I think it's something(like not random words) but no idea, topic 7 clearly measurements, topic 8 health but to do with heart rate and stuff, topic 10 is gym/playground, topic 11 health physical education, topic 14 is all verbs so probably instructions, topic 18 has cities so that's interesting, topic 25 has digitized so that's weird. There is a clear physical, health, and workout theme here though, which of course makes sense considering it's a physical health magazine. 
 
 ```
 
 (@) What happens if you create a custom stopword list? How does this change the model?
 ```{r}
+mystops<- c("forw", "backw", "cts", "bd", "st", "ave", "pos", "yi")
+mb.tokens<- mb.tokens %>%
+  filter(!word %in% mystops)
+
+mb.dtm <- mb.tokens %>% 
+  count(doc_id, word) %>% 
+  cast_dtm(doc_id, word, n)
+
+
+mb.lda<- LDA(mb.dtm, k = 25, control = list(seed = 12345), method = "Gibbs", alpha = .05)
+
+mb.topics <- tidy(mb.lda, matrix = "beta")
+mb.top.terms <- mb.topics %>%
+  arrange(desc(beta)) %>% 
+  group_by(topic) %>% slice(1:5)
+  View(mb.top.terms)  
+#this drastically changed the topics, topic 1 is about robe climbing now, 2 is excercises, and 3 is skeletal-muscular, it has completely shifted the order of topics but most of the composition is the same, a few new words like topic 9 has santa stage king and sing which seems like it's about a christmas parade. 
 ```
 
 
 (@) Can you create a topic model for just the documents in the 1920s? How does that change the model? 
 ```{r}
+mb.tokens<- mb.tokens %>%
+  filter(Year == 1920)
 
+mb.dtm <- mb.tokens %>% 
+  count(doc_id, word) %>% 
+  cast_dtm(doc_id, word, n)
+
+
+mb.lda<- LDA(mb.dtm, k = 25, control = list(seed = 12345), method = "Gibbs", alpha = .05)
+
+mb.topics <- tidy(mb.lda, matrix = "beta")
+mb.top.terms <- mb.topics %>%
+  arrange(desc(beta)) %>% 
+  group_by(topic) %>% slice(1:5)
+  View(mb.top.terms) 
+
+
+# The topics are clearly different but some still have to do with physical education. The word racial appears in topic 25, I'm not entirely certain why that would be especially prevalent in 1920. There is also  "girls" are in multiple topics and this could be because of the ratification of the 19th amendment. Perhaps this is because women and girls were simply at the front, or at least more at the front, of society's mind so the journal began covering girls. 
 
 ```
 
-(@) Now, lets return to the Buffalo Bill data from last week. You should be able to use topic modeling to address two of the research questions provided:
 
-* Can we detect some change over time in promotion language and reception language (marketing and reviewing)? Were there types of characters, scenarios, action promised in promotional material and/or noted in reviews earlier vs later?
-* What can be gleaned from the items tagged as extraneous as far as topics? These are news items that are somehow related to BBWW. Crime, finances, celebrity, etc.
-
-To analyze this you should first generate a topic model for the buffalo bill data. Play with the number of topics until you find a number that feels about right for the dataset. I am guessing it'll be in the 8-15 range but you'll need to play with it to see what number gives you the best fit. 
-
-To address the first research question, you'll need to plot topics over time. I would create three models, one for all of the data, one for promotion, and one for reception. What do we learn by doing this?
-
-For the second, a general topic model of the extraneous articles will be needed. 
-
-Add code blocks below as necessary.
 
 (@) Finally, when you are all done. Write up your findings. What research question did you focus on and what did you learn? 
+```{r}
+
+txt<- readtext("C:/Users/anton/Desktop/herald1874.txt")
+#this is a single page of the New York Herald, I realize that a single page topic model may not work however this page consists solely of quotes and political opinions from every senator and many representatives from 1874 about President Grant's possible 3rd term. I thought it would be fascinating to see if any patterns emerge, it may point to underlying political attitudes or suprising divides or overlaps between democrats and republicans.
+
+herald.tokens<- txt %>%
+  unnest_tokens(sentence, text, token = "sentences") 
+#decided to group by sentences then group by number of sentences because the page is a wall of text
+ #doesn't make sense to do stop words when im doing sentences at this stage
+  
+my_stops<- c("1", "ami", "street", "tho", "ol", "1", "2", "3", "4", "5", "6", "7", "8", "9", "lor", "o\\'clock", "bo", "aud", "day", "10", "st", "west", "john", "oi", "de", "ac", "ho", "12","tne", "11", "20", "tue", "lie", "tlie", "lo", "iu", "dr", "con", "ou", "01", "irom", "ot", "0", "la", "tor", "100", "ii", "tbe", "william", "lu","111", "ft", "city", "york", "twenty", "li","ten","time","late","house", "sale", "herald", "address", "east", "morning","30", "200","13", "fourth", "si", "16", "called", "18", "thirty", "ing", "avenue", "evening", "ana", "held", "17", "15", "1874", "00", "50", "14", "1873", "night", "yesterday","office","broadway","board","sixth","hall", "ol," "tbe", "oi")
+my_stops_clean <- my_stops %>%
+  tolower() %>%        
+  trimws() %>%        
+  gsub("[^a-z]", "", .)
+  #some things in my stops weren't getting applied and AI suggested using this because unnest tokens does certain things to text like lowercasing and stuff so my_stops was not in the correct format to apply the stops
+ herald.tokens<- herald.tokens %>%
+  mutate(group = (row_number() - 1) %/% 6) %>%
+  #only way I could figure to do this, this creates groups by every 3 rows, I'm gonna try various groupings
+  #6 sentences seems to give me the most meaningful topics, in the original page, quotes are broken up by 3-7 lines so I think this works
+  group_by(group) %>%
+  summarise(text = paste(sentence, collapse = " ")) 
+  #paste the sentence rows into one
+
+
+tokens<- herald.tokens %>%
+  unnest_tokens(word,text) %>%
+    anti_join(stop_words) %>%
+     filter(!word %in% my_stops_clean)
+
+
+
+herald.dtm <- tokens %>% 
+  count(group, word) %>% 
+  cast_dtm(group, word, n)
+
+
+herald.lda<- LDA(herald.dtm, k = 25, control = list(seed = 12345), method = "Gibbs", alpha = .05)
+#need to play with topics as much as possible
+#ran 3-10 topics, most were very general and not that informative
+#4 was the cleanest and 25 had the most interesting things
+herald.topics <- tidy(herald.lda, matrix = "beta")
+
+herald.top.terms <- herald.topics %>%
+  arrange(desc(beta)) %>% 
+  group_by(topic) %>% slice(1:5)
+  View(herald.top.terms)
+  x11()
+ggplot(data=herald.top.terms, aes(x=term, y=beta)) + geom_bar(stat="identity") + facet_wrap(~ topic, scales = "free") + 
+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+#Oddly enough 4 topics gave me the most sensible collection of words. Topic 1 had republican, grant, support, opposed, nominated and 3 had democrat, term, republican, people, and opinion. Now topic 1 is extremely fascinating because the model is linking republican with support AND opposed to the prospect of Grant's third term. In 1874 there was certainly a disharmony in the republican party and this seems to be somewhat reflecting that. Another odd turn of events, I did 25 topics and found extremely relevant groupings. Though it was filled with ocr errors, many of the errors were actually readable words, like urant for grant. You have words like support with specific states, you have states grouped together under topic, you have a topic with reason, grant's, south, people, and also multiple topics with Kentucky. Grant had several ties to Kentucky so that's either relevant or an odd coincidence. Topic 3 has democrat, republican, would, and opposed which is interesting. The topics seem to be indicating that certain political issues could cut across party lines. The way the model is grouping creates avenues for inquiry that I wouldn't have thought to pursue. Now is this a usable form of digital argument? Probably not, however it does raise interesting questions. 
+
+```
 
 
 
